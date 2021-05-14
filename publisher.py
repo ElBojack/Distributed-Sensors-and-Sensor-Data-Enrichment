@@ -4,7 +4,7 @@ import datetime
 import numpy as np
 
 print("creating new instance")
-client = mqtt.Client("P1")     # create new instance (the ID, in this case "P1", must be unique)
+client = mqtt.Client("OUNNII")     # create new instance (the ID, in this case "P1", must be unique)
 
 #broker_address = "localhost" # Use your own MQTT Server IP Adress (or domain name) here, or ...
 broker_address = "test.mosquitto.org" # ... use the Mosquitto test server during development

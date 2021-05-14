@@ -83,6 +83,7 @@ def on_message(client, userdata, message):
     on_message.id += 1
     print("Message received")
 
+    g.add((new_obs, RDF.type, SOSA.Observation))
     g.add((new_obs, SOSA.observedProperty, sensor_obs))
     g.add((new_obs, SOSA.hasFeatureOfInterest, earthAtmosphere))
     g.add((new_obs, SOSA.madeBySensor, sensor))
@@ -92,7 +93,7 @@ def on_message(client, userdata, message):
 on_message.id = 1
 
 print("creating new instance")
-client = mqtt.Client("P1")     # create new instance (the ID, in this case "P1", must be unique)
+client = mqtt.Client("OUOFZOBFOUZFB")     # create new instance (the ID, in this case "P1", must be unique)
 
 #broker_address = "localhost" # Use your own MQTT Server IP Adress (or domain name) here, or ...
 broker_address = "test.mosquitto.org" # ... use the Mosquitto test server during development
@@ -104,12 +105,12 @@ time.sleep(2)
 
 try:
     print("connecting to broker")
+    client.loop_start()            # start the event processing loop
     for i in range(10):
-
-        client.loop_start()            # start the event processing loop
         client.on_message = on_message # attach "on_message" callback function (event handler) to "on_message" event
-        client.loop_stop()  # stop the event processing loop
-        time.sleep(4)       # wait 4 seconds before stopping the event processing loop (so all pending events are processed)
+        time.sleep(1)       # wait 4 seconds before stopping the event processing loop (so all pending events are processed)
+    time.sleep(4)       # wait 4 seconds before stopping the event processing loop (so all pending events are processed)
+    client.loop_stop()  # stop the event processing loop
 
     
     client.unsubscribe("teds20/group10/pressure") # unsubscribe
@@ -122,5 +123,5 @@ except Exception as e:
 
 print_graph(g)
 
-with open("publisher.ttf", "w") as f:
+with open("publisher.ttl", "w") as f:
     f.write(g.serialize(format='ttl', base=BASE).decode('u8'))
