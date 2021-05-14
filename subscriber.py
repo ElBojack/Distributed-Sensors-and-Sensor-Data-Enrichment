@@ -78,9 +78,9 @@ def print_graph(gg):
 ########################
 
 def on_message(client, userdata, message):
-    [reading, dt, id] = message.payload.decode('utf-8').split('|')    
-    new_obs = URIRef("Observation/" + id)
-
+    [reading, dt] = message.payload.decode('utf-8').split('|')    
+    new_obs = URIRef("Observation/" + str(on_message.id))
+    on_message.id += 1
     print("Message received")
 
     g.add((new_obs, SOSA.observedProperty, sensor_obs))
@@ -89,37 +89,30 @@ def on_message(client, userdata, message):
     g.add((new_obs, SOSA.hasSimpleResult, Literal(reading, datatype=CDT.ucum)))
     g.add((new_obs, SOSA.resultTime, Literal(dt, datatype=XSD.dateTime)))
 
+on_message.id = 1
+
 print("creating new instance")
 client = mqtt.Client("P1")     # create new instance (the ID, in this case "P1", must be unique)
-client.on_message = on_message # attach "on_message" callback function (event handler) to "on_message" event
 
 #broker_address = "localhost" # Use your own MQTT Server IP Adress (or domain name) here, or ...
 broker_address = "test.mosquitto.org" # ... use the Mosquitto test server during development
+client.username_pw_set("admin", "password")
+client.connect(broker_address) # connect to broker
+client.subscribe("teds20/group10/pressure", qos=2) # subscribe
+
+time.sleep(2)
 
 try:
     print("connecting to broker")
-    client.connect(broker_address) # connect to broker
-    client.loop_start()            # start the event processing loop
-
-    print("Subscribing to topic: teds20/group10/pressure")
-    client.subscribe("teds20/group10/pressure", qos=2) # subscribe
-
     for i in range(10):
-        mu, sigma = 1200.00, 1.0
-        reading = f'{round(np.random.normal(mu, sigma), 2):.2f}'        
-        dt = datetime.datetime.now()
-        dt = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-        message = f'{reading}|{dt}|{str(i + 1)}'
-        print("Publishing message to topic: teds20/group10/pressure")
-        client.publish(topic="teds20/group10/pressure", payload=message, qos=2) # publish
-        time.sleep(1)
 
-    print("Unsubscribing from topic: teds20/group10/pressure")
+        client.loop_start()            # start the event processing loop
+        client.on_message = on_message # attach "on_message" callback function (event handler) to "on_message" event
+        client.loop_stop()  # stop the event processing loop
+        time.sleep(4)       # wait 4 seconds before stopping the event processing loop (so all pending events are processed)
+
+    
     client.unsubscribe("teds20/group10/pressure") # unsubscribe
-
-    time.sleep(4)       # wait 4 seconds before stopping the event processing loop (so all pending events are processed)
-    client.loop_stop()  # stop the event processing loop
-
     print("\ndisconnecting from broker\n")
     client.disconnect() # disconnect from broker
 except Exception as e:

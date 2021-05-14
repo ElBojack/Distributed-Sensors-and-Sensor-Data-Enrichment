@@ -3,19 +3,12 @@ import time
 import datetime
 import numpy as np
 
-def on_message(client, userdata, message):
-    print(f"\nmessage payload: {message.payload.decode('utf-8')}")
-    print(f"message topic: {message.topic}")
-    print(f"message qos: {message.qos}")
-    print(f"message retain flag: {message.retain}")
-
 print("creating new instance")
 client = mqtt.Client("P1")     # create new instance (the ID, in this case "P1", must be unique)
-client.on_message = on_message # attach "on_message" callback function (event handler) to "on_message" event
 
 #broker_address = "localhost" # Use your own MQTT Server IP Adress (or domain name) here, or ...
 broker_address = "test.mosquitto.org" # ... use the Mosquitto test server during development
-
+client.username_pw_set("admin", "password")
 # Use exception handling (try...except in Python)
 try:
     print("connecting to broker")
